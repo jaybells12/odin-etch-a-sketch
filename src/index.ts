@@ -10,10 +10,19 @@ function createSquareGrid(length: number): void {
     for (let j = 0; j < length; j++) {
       const newDiv: HTMLElement = document.createElement("div");
       newDiv.classList.add("unit");
+      newDiv.addEventListener("pointerenter", onHover);
       newRow.appendChild(newDiv);
     }
     container.appendChild(newRow);
   }
+}
+
+function onHover(e: Event): void {
+  if (!e.target) throw new Error("Hover event has no target");
+  if (!(e.target instanceof HTMLElement))
+    throw new Error("Hover event target is not an HTML element");
+
+  e.target.style.backgroundColor = "red";
 }
 
 createSquareGrid(16);
