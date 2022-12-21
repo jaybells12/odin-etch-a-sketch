@@ -10,6 +10,8 @@ function createSquareGrid(length: number): void {
     for (let j = 0; j < length; j++) {
       const newDiv: HTMLElement = document.createElement("div");
       newDiv.classList.add("unit");
+      newDiv.style.height = `${960 / length}px`;
+      newDiv.style.width = `${960 / length}px`;
       newDiv.addEventListener("pointerenter", onHover);
       newRow.appendChild(newDiv);
     }
