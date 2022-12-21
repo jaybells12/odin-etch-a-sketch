@@ -25,4 +25,29 @@ function onHover(e: Event): void {
   e.target.style.backgroundColor = "red";
 }
 
+function getUserInput(): number {
+  let choice: number = 0;
+  let input: string | null = "";
+  do {
+    input = prompt("Please input a number between 1-100");
+    if (input) {
+      choice = isNaN(parseInt(input)) ? 0 : parseInt(input);
+    }
+  } while (choice < 1 || choice > 100);
+
+  return choice;
+}
+
+function removeGrid(): void {
+  const container: HTMLElement | null =
+    document.getElementById("grid__container");
+  if (!container) throw new Error("Couldn't find grid container element");
+  container.replaceChildren();
+}
+
+function createNewGrid(): void {
+  removeGrid();
+  createSquareGrid(getUserInput());
+}
+
 createSquareGrid(16);

@@ -78,3 +78,15 @@ table {
   background-color: rebeccapurple;
   border: 1px solid gold;
 }
+
+#grid__btn {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+}
+
+.btn {
+  font-size: 0.5rem;
+  width: min-content;
+  padding: 0.5em;
+}
