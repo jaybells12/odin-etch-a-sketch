@@ -12,24 +12,22 @@
     <div id="controls__container">
       <fieldset class="controls__group">
         <legend class="controls__title">Coloring</legend>
-        <label for="pen-color">Pen</label>
+        <label for="pen-color__input">Pen</label>
         <input type="color" id="pen-color__input" />
-        <label for="bg-color">Background</label>
-        <input type="color" id="bg-color__input" />
+        <label for="bg-color__input">Background</label>
+        <input type="color" id="bg-color__input" value="#FFFFFF" />
+        <button id="rainbow__btn" class="btn">Rainbow</button>
         <button id="eraser__btn" class="btn">Eraser</button>
       </fieldset>
       <fieldset class="controls__group">
         <legend class="controls__title">Luminance</legend>
         <button id="lighten__btn" class="btn">Lighten</button>
-        <button id="dark__btn" class="btn">Darken</button>
+        <button id="darken__btn" class="btn">Darken</button>
       </fieldset>
       <fieldset class="controls__group">
         <legend class="controls__title">Display</legend>
         <button id="clear__btn" class="btn">Clear</button>
-        <button id="grid__btn" class="btn" onclick="createNewGrid()">
-          New Grid
-        </button>
-        <label for="grid-size">Size</label>
+        <label for="grid-size__input">Size:</label>
         <input
           id="grid-size__input"
           type="range"
@@ -37,7 +35,9 @@
           max="100"
           step="1"
           value="50"
-        /><span id="grid-size__value">50</span>
+          oninput="this.nextElementSibling.value = this.value"
+        />
+        <output>50</output>
       </fieldset>
     </div>
     <div id="grid__container"></div>
