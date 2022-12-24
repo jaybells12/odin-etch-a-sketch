@@ -313,7 +313,6 @@ function initialize(): void {
     }
   });
   window.addEventListener("mouseup", (e: MouseEvent) => {
-    e.preventDefault();
     if (e.button === 0) {
       options.mouseBtnHeld = false;
     }

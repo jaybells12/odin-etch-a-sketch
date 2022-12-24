@@ -256,7 +256,6 @@ function initialize() {
         }
     });
     window.addEventListener("mouseup", (e) => {
-        e.preventDefault();
         if (e.button === 0) {
             options.mouseBtnHeld = false;
         }
