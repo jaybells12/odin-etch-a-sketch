@@ -1,0 +1,27 @@
+{
+  "name": "odin-etch-a-sketch",
+  "version": "1.0.0",
+  "description": "Odin Project - Etch-a-Sketch",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaybells12/odin-etch-a-sketch.git"
+  },
+  "keywords": [
+    "odin",
+    "project",
+    "javascript",
+    "typescript",
+    "etch-a-sketch"
+  ],
+  "author": "James Bellomy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jaybells12/odin-etch-a-sketch/issues"
+  },
+  "homepage": "https://github.com/jaybells12/odin-etch-a-sketch"
+}

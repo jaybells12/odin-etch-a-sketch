@@ -121,7 +121,6 @@ function initialize(): void {
   }
 
   // ------------ Control Functions ------------
-  // Refactor this
   function setColor(e: Event): void {
     if (e.target instanceof HTMLInputElement) {
       e.preventDefault();
