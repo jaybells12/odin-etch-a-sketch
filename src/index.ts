@@ -26,11 +26,15 @@ function convertRGBtoHSL(rgbString: string): string {
         : cMax === green
         ? 60 * ((blue - red) / delta + 2)
         : 60 * ((red - green) / delta + 4));
+  // if hue calculation comes out negative, circle around from 360
+  if (hue < 0) {
+    hue = 360 + hue;
+  }
 
   let lightness: number = (cMax + cMin) / 2;
   let saturation: number = 100 * (delta / (1 - Math.abs(2 * lightness - 1)));
 
-  return `hsl(${hue}, ${Math.round(saturation)}%, ${Math.round(
+  return `hsl(${Math.round(hue)} ${Math.round(saturation)}% ${Math.round(
     lightness * 100
   )}%)`;
 }
@@ -58,6 +62,8 @@ interface OptionsObject {
   darken: boolean;
   rainbow: boolean;
   eraser: boolean;
+  prevUnit: HTMLDivElement | null;
+  mouseBtnHeld: boolean;
 }
 
 function initialize(): void {
@@ -68,6 +74,8 @@ function initialize(): void {
     darken: false,
     rainbow: false,
     eraser: false,
+    prevUnit: null,
+    mouseBtnHeld: false,
   };
 
   // ------------ Grid Functions ------------
@@ -90,19 +98,56 @@ function initialize(): void {
       gridContainer.replaceChildren();
     }
   }
+  function clearGrid(e: Event): void {
+    e.preventDefault();
+    // Had to assert type to HTMLDivElement here because I couldn't figure out how to access style property from type Element
+    const units = document.getElementsByClassName(
+      "unit"
+    ) as HTMLCollectionOf<HTMLDivElement>;
+    if (units) {
+      for (let i = 0; i < units.length; i++) {
+        units[i].style.backgroundColor = "";
+      }
+    }
+  }
+  function resizeGrid(e: Event) {
+    if (sizeInput instanceof HTMLInputElement) {
+      e.preventDefault();
+      removeGrid();
+      createGrid(+sizeInput.value);
+    } else {
+      throw new Error("Size Input element not found");
+    }
+  }
 
   // ------------ Control Functions ------------
-  function setColor(e: Event, color: string): void {
-    e.preventDefault();
-    options.color = convertHexToRGB(color);
+  // Refactor this
+  function setColor(e: Event): void {
+    if (e.target instanceof HTMLInputElement) {
+      e.preventDefault();
+      options.color = convertHexToRGB(e.target.value);
+    } else {
+      throw new Error("Pen Color Input element not found");
+    }
   }
-  function setBgColor(e: Event, color: string): void {
-    e.preventDefault();
-    options.bgColor = convertHexToRGB(color);
+  function setBgColor(e: Event): void {
+    if (e.target instanceof HTMLInputElement) {
+      if (gridContainer instanceof HTMLDivElement) {
+        e.preventDefault();
+        options.bgColor = convertHexToRGB(e.target.value);
+        gridContainer.style.backgroundColor = options.bgColor;
+      } else {
+        throw new Error("Grid Container element not found");
+      }
+    } else {
+      throw new Error("Background Color Input element not found");
+    }
   }
   function toggleRainbow(e: Event): void {
     e.preventDefault();
     options.eraser = false;
+    options.darken = false;
+    options.lighten = false;
     options.rainbow = !options.rainbow;
     setButtonsStatus();
   }
@@ -118,6 +163,7 @@ function initialize(): void {
     e.preventDefault();
     options.eraser = false;
     options.darken = false;
+    options.rainbow = false;
     options.lighten = !options.lighten;
     setButtonsStatus();
   }
@@ -125,6 +171,7 @@ function initialize(): void {
     e.preventDefault();
     options.eraser = false;
     options.lighten = false;
+    options.rainbow = false;
     options.darken = !options.darken;
     setButtonsStatus();
   }
@@ -137,26 +184,86 @@ function initialize(): void {
     }
   }
 
-  function clearGrid(e: Event): void {
-    e.preventDefault();
-    // Had to assert type to HTMLDivElement here because I couldn't figure out how to access style property from type Element
-    const units = document.getElementsByClassName(
-      "unit"
-    ) as HTMLCollectionOf<HTMLDivElement>;
-    if (units) {
-      for (let i = 0; i < units.length; i++) {
-        units[i].style.backgroundColor = "";
+  // ------------ Coloring Functions ------------
+  function colorGridUnit(e: Event): void {
+    // the following condition exits the function if the event fires over the same target sequentially, or if the mouse button isnt being held
+    if (options.prevUnit === e.target || !options.mouseBtnHeld) return;
+
+    if (e.target instanceof HTMLDivElement) {
+      options.prevUnit = e.target;
+      const rgbColor: string = e.target.style.backgroundColor;
+
+      if (options.eraser) {
+        e.target.style.backgroundColor = "";
+        return;
       }
+
+      if (options.rainbow) {
+        e.target.style.backgroundColor = getRandomColor();
+        return;
+      }
+
+      if (options.lighten) {
+        if (rgbColor) {
+          e.target.style.backgroundColor = lightenHSLColor(
+            convertRGBtoHSL(rgbColor)
+          );
+        } else {
+          e.target.style.backgroundColor = lightenHSLColor(
+            convertRGBtoHSL(options.bgColor)
+          );
+        }
+        return;
+      }
+
+      if (options.darken) {
+        if (rgbColor) {
+          e.target.style.backgroundColor = darkenHSLColor(
+            convertRGBtoHSL(rgbColor)
+          );
+        } else {
+          e.target.style.backgroundColor = darkenHSLColor(
+            convertRGBtoHSL(options.bgColor)
+          );
+        }
+        return;
+      }
+
+      e.target.style.backgroundColor = options.color;
     }
   }
-  function resizeGrid(e: Event, size: string) {
-    e.preventDefault();
-    removeGrid();
-    createGrid(+size);
+  function getRandomColor(): string {
+    const red: number = Math.floor(Math.random() * 256);
+    const green: number = Math.floor(Math.random() * 256);
+    const blue: number = Math.floor(Math.random() * 256);
+    return `rgb(${red}, ${green}, ${blue})`;
+  }
+  function lightenHSLColor(inputColor: string): string {
+    const colorValues: RegExpMatchArray | null = inputColor.match(/\d+/g);
+    if (colorValues) {
+      let lightValue: number = +colorValues[2];
+      lightValue =
+        lightValue >= 100
+          ? 100
+          : 3 + lightValue + Math.round((100 - lightValue) / 10);
+      return `hsl(${colorValues[0]} ${colorValues[1]}% ${lightValue}%)`;
+    } else {
+      throw new Error("Color Values array is null");
+    }
+  }
+  function darkenHSLColor(inputColor: string): string {
+    const colorValues: RegExpMatchArray | null = inputColor.match(/\d+/g);
+    if (colorValues) {
+      let lightValue: number = +colorValues[2];
+      lightValue =
+        lightValue <= 0 ? 0 : lightValue - Math.round(lightValue / 10) - 3;
+      return `hsl(${colorValues[0]}, ${colorValues[1]}%, ${lightValue}%)`;
+    } else {
+      throw new Error("Color Values array is null");
+    }
   }
 
   // ------------ Elements ------------
-
   const gridContainer: HTMLElement | null =
     document.getElementById("grid__container");
   if (!(gridContainer instanceof HTMLDivElement))
@@ -199,26 +306,27 @@ function initialize(): void {
     throw new Error("Size Input element not found");
 
   // ------------ Listeners ------------
-  gridContainer.addEventListener("mousemove", (e: Event) => {
-    if (e.target instanceof HTMLDivElement) {
-      e.target.style.backgroundColor = "red";
+  gridContainer.addEventListener("mousemove", colorGridUnit);
+  gridContainer.addEventListener("mousedown", (e: MouseEvent) => {
+    e.preventDefault();
+    if (e.button === 0) {
+      options.mouseBtnHeld = true;
     }
   });
-  penColorInput.addEventListener("change", (e: Event) =>
-    setColor(e, penColorInput.value)
-  );
-  bgColorInput.addEventListener("change", (e: Event) => {
-    setBgColor(e, bgColorInput.value);
-    gridContainer.style.backgroundColor = options.bgColor;
+  window.addEventListener("mouseup", (e: MouseEvent) => {
+    e.preventDefault();
+    if (e.button === 0) {
+      options.mouseBtnHeld = false;
+    }
   });
-  rainbowBtn.addEventListener("click", (e: Event) => toggleRainbow(e));
-  eraserBtn.addEventListener("click", (e: Event) => toggleEraser(e));
-  darkBtn.addEventListener("click", (e: Event) => toggleDarken(e));
-  lightBtn.addEventListener("click", (e: Event) => toggleLighten(e));
-  clearBtn.addEventListener("click", (e: Event) => clearGrid(e));
-  sizeInput.addEventListener("change", (e: Event) =>
-    resizeGrid(e, sizeInput.value)
-  );
+  penColorInput.addEventListener("change", setColor);
+  bgColorInput.addEventListener("input", setBgColor);
+  rainbowBtn.addEventListener("click", toggleRainbow);
+  eraserBtn.addEventListener("click", toggleEraser);
+  darkBtn.addEventListener("click", toggleDarken);
+  lightBtn.addEventListener("click", toggleLighten);
+  clearBtn.addEventListener("click", clearGrid);
+  sizeInput.addEventListener("change", resizeGrid);
 
   //initial grid
   createGrid(50);
