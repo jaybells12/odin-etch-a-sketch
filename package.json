@@ -2,7 +2,7 @@
   "name": "odin-etch-a-sketch",
   "version": "1.0.0",
   "description": "Odin Project - Etch-a-Sketch",
-  "main": "./dist/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "deploy": "npm run build && gh-pages -d dist",
     "build": "tsc",
